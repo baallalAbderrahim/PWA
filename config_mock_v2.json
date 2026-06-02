@@ -24,7 +24,7 @@
     "###### Pour CRIM'IN c'est soit remote soit none  ######":"",
     "mode": "remote",
     "remote": {
-      "baseUrl": "https://10.129.70.142",
+      "baseUrl": "https://pwa-u3m3fxf4.b4a.run",
       "requestUrl": "/api/rest/mcb/logs",
       "port": 8080,
       "logsMethod": "POST",
@@ -41,7 +41,7 @@
   "###### Valeurs possibles : remote, local ######":"",
   "mode": "remote",
   "remote": {
-    "baseUrl": "https://10.129.70.142",
+    "baseUrl": "https://pwa-u3m3fxf4.b4a.run/",
     "requestUrl": "/api/rest/mcb/empreintes",
     "port": 8080,
     "httpMethod": "POST",
@@ -51,7 +51,7 @@
       "Content-Type": "application/json",
       "x-custom-header": "your_value"
     },
-    "urlCallback": "https://10.129.70.142:8080",
+    "urlCallback": "https://pwa-u3m3fxf4.b4a.run",
     "certificate": "-----BEGIN CERTIFICATE-----MIIEWzCCAsOgAwIBAgIQNJYFhftsmN1YnqZVLMi2pDANBgkqhkiG9w0BAQsFADCBhzEeMBwGA1UEChMVbWtjZXJ0IGRldmVsb3BtZW50IENBMS4wLAYDVQQLDCVnNTIyOTI1QE1BQ0ExLU1BQzAwMDQubG9jYWwgKEc1MjI5MjUpMTUwMwYDVQQDDCxta2NlcnQgZzUyMjkyNUBNQUNBMS1NQUMwMDA0LmxvY2FsIChHNTIyOTI1KTAeFw0yNjA2MDEwODQxMjJaFw0yODA5MDEwODQxMjJaMFkxJzAlBgNVBAoTHm1rY2VydCBkZXZlbG9wbWVudCBjZXJ0aWZpY2F0ZTEuMCwGA1UECwwlZzUyMjkyNUBNQUNBMS1NQUMwMDA0LmxvY2FsIChHNTIyOTI1KTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMoLxlx1v4ll1v1oE7GmJT9td9BMs/fKkROLFShD7hRt7QQQvR3zKrLaZUll1pdumDuNLJ9D2D2s0Efo9OgODmMSEqh0Zx/Tv0kyMaAnz47N9Aq0N+kg6TsiGHEDH/D9HiGtmSHeXyx1hOrQlJHRQqDX2oWvOmn8pxG7ixWF9gt2VTOIZPU6uIXulMBlDDaatS5hE7RGdV8m2ETaWOP6d9NWz/RTeYbUQR/gcnGTnr2qXEDjrAwq+btNoegAlPCi058dA14z+dx/cwtTZKdSS+KC5Cxb/ca9UeyqxBvOvzX2xa4XkmuzM4PUr+a5UZN+mdX7qC6K18uXbrOz22X3uSUCAwEAAaNwMG4wDgYDVR0PAQH/BAQDAgWgMBMGA1UdJQQMMAoGCCsGAQUFBwMBMB8GA1UdIwQYMBaAFMldIqqEqPqgUER3ggL4HW+I5S8WMCYGA1UdEQQfMB2CCWxvY2FsaG9zdIcEfwAAAYcECoFGjocECgACAjANBgkqhkiG9w0BAQsFAAOCAYEAtSbCQylaHQfaWeU19sA6nwBiSAv8BoPQAVppjZxYF49PLNSdK7WB0OyGMl2pxwtNvXpA+LG9YnL5l63fPlKWFuR3ioKpJIQE9rM7wtJGCi1IwNk0+aNCZngy9WsIaxdb2Fp1xzQlV+prtoVQsHy9vTfQOUsTO8PK74EaXjHzxumx1/hV56ai3+DehGwOiCk798TjIZFehrvsgh8wElccHj56JNOvAMSWojIKtE7Qn5UBjswY76x18apLHqzW2blwaEIU263AyTWJsEWO6MeNRdUnKabkRnCTOexuDEAs8aHSE2gBvbwoVPoOsjuWfnfRtFihZ0b4sr2m5FVuhv8WjG3T2UdAnTXfQsuT9ctmXKEQFFrgDKOV4VLY5+pTUTODW5rxcQvQ3UYNA5G6dOwZENkGChjAHMh1iN+2xUNxu3ehDfPrE6756eI/bqwS41JatNrbGd74VOMBMwmNDWIyeoW4rDeqyUpuV5YyY8vm6rcyadDqFckIpxLJHHT5xgSq-----END CERTIFICATE-----"
   },
   "formats": ["JSON"]
