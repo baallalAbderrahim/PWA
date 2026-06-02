@@ -1,0 +1,304 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRIMIN — Dossiers reçus</title>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f5f5f0;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 32px 16px;
+    }
+
+    .top-bar {
+      max-width: 900px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .top-bar h1 { font-size: 20px; font-weight: 600; }
+    .top-bar a { font-size: 13px; color: #185fa5; text-decoration: none; }
+    .top-bar a:hover { text-decoration: underline; }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 7px 14px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid #d0d0ca;
+      background: #fff;
+      color: #1a1a1a;
+      transition: background 0.12s;
+    }
+    .btn:hover { background: #f0f0eb; }
+    .btn.danger { border-color: #e24b4a; color: #a32d2d; }
+    .btn.danger:hover { background: #fcebeb; }
+
+    .live-dot {
+      width: 8px; height: 8px;
+      background: #639922;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    #log-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #888;
+      font-size: 15px;
+    }
+
+    .log-card {
+      background: #fff;
+      border: 1px solid #e2e2dc;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .log-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.1s;
+    }
+    .log-header:hover { background: #fafaf8; }
+
+    .status-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .pill-ok  { background: #eaf3de; color: #3b6d11; }
+    .pill-err { background: #fcebeb; color: #a32d2d; }
+
+    .log-id      { font-size: 13px; color: #888; font-weight: 500; min-width: 48px; }
+    .log-ts      { font-size: 13px; color: #888; margin-left: auto; white-space: nowrap; }
+    .log-arrow   { font-size: 13px; color: #aaa; margin-left: 8px; transition: transform 0.2s; }
+    .log-card.open .log-arrow { transform: rotate(90deg); }
+
+    .log-summary {
+      font-size: 13px;
+      color: #555;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 300px;
+    }
+
+    .log-body {
+      display: none;
+      border-top: 1px solid #e2e2dc;
+      padding: 16px;
+    }
+    .log-card.open .log-body { display: block; }
+
+    .log-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #888;
+      margin-bottom: 8px;
+      margin-top: 14px;
+    }
+    .log-section-title:first-child { margin-top: 0; }
+
+    /* Headers table */
+    .headers-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      font-family: 'Menlo', 'Consolas', monospace;
+      background: #f5f5f0;
+      border: 1px solid #e2e2dc;
+      border-radius: 7px;
+      overflow: hidden;
+    }
+    .headers-table tr:not(:last-child) td {
+      border-bottom: 1px solid #e8e8e3;
+    }
+    .headers-table td {
+      padding: 6px 10px;
+      vertical-align: top;
+    }
+    .headers-table td:first-child {
+      color: #185fa5;
+      font-weight: 600;
+      white-space: nowrap;
+      width: 1%;
+      padding-right: 16px;
+    }
+    .headers-table td:last-child {
+      color: #1a1a1a;
+      word-break: break-all;
+    }
+    .headers-table tr:hover td { background: #eeeeea; }
+
+    pre {
+      background: #f5f5f0;
+      border: 1px solid #e2e2dc;
+      border-radius: 7px;
+      padding: 12px;
+      font-size: 12px;
+      font-family: 'Menlo', 'Consolas', monospace;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: #1a1a1a;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="top-bar">
+  <div style="display:flex; align-items:center; gap:10px;">
+    <span class="live-dot"></span>
+    <h1>Dossiers reçus</h1>
+  </div>
+  <div class="controls">
+    <a href="/">← Launcher</a>
+    <button class="btn" onclick="loadLogs()">Actualiser</button>
+    <button class="btn danger" onclick="clearLogs()">Vider</button>
+  </div>
+</div>
+
+<div id="log-container">
+  <div class="empty-state">En attente de dossiers...</div>
+</div>
+
+<script>
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function getSummary(payload) {
+    try {
+      const d = payload.dossier || payload.Dossier;
+      if (!d) return JSON.stringify(payload).substring(0, 60) + "...";
+      const name = d.personalInfo?.name || d.personalInfo?.lastName || "—";
+      const fp = (d.fingerprints || []).length;
+      return `${name} · ${fp} empreinte(s)`;
+    } catch {
+      return "—";
+    }
+  }
+
+  function renderHeaders(headers) {
+    if (!headers || Object.keys(headers).length === 0) {
+      return '<p style="font-size:13px;color:#888;">—</p>';
+    }
+
+    const rows = Object.entries(headers)
+      .sort(([a], [b]) => a.toLowerCase().localeCompare(b.toLowerCase()))
+      .map(([key, value]) => `
+        <tr>
+          <td>${escapeHtml(key)}</td>
+          <td>${escapeHtml(value)}</td>
+        </tr>
+      `)
+      .join('');
+
+    return `<table class="headers-table"><tbody>${rows}</tbody></table>`;
+  }
+
+  function renderLogs(logs) {
+    const container = document.getElementById('log-container');
+
+    if (!logs.length) {
+      container.innerHTML = '<div class="empty-state">En attente de dossiers...</div>';
+      return;
+    }
+
+    container.innerHTML = logs.map(log => `
+      <div class="log-card" id="card-${log.id}">
+        <div class="log-header" onclick="toggleCard(${log.id})">
+          <span class="log-id">#${log.id}</span>
+          <span class="status-pill ${log.status === 'OK' ? 'pill-ok' : 'pill-err'}">${log.status}</span>
+          <span class="log-summary">${getSummary(log.payload)}</span>
+          <span class="log-ts">${log.timestamp}</span>
+          <span class="log-arrow">›</span>
+        </div>
+
+        <div class="log-body">
+
+          <div class="log-section-title">En-têtes (${Object.keys(log.headers || {}).length})</div>
+          ${renderHeaders(log.headers)}
+
+          ${log.error ? `
+            <div class="log-section-title">Erreur</div>
+            <pre>${escapeHtml(log.error)}</pre>
+          ` : ''}
+
+          <div class="log-section-title">Payload JSON</div>
+          <pre>${escapeHtml(JSON.stringify(log.payload, null, 2))}</pre>
+
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function toggleCard(id) {
+    document.getElementById('card-' + id).classList.toggle('open');
+  }
+
+  async function loadLogs() {
+    try {
+      const r = await fetch('/api/logs');
+      const logs = await r.json();
+      renderLogs(logs);
+    } catch (e) {
+      console.error('Failed to load logs', e);
+    }
+  }
+
+  async function clearLogs() {
+    if (!confirm('Vider tous les dossiers reçus ?')) return;
+    await fetch('/api/clear-logs');
+    loadLogs();
+  }
+
+  loadLogs();
+</script>
+
+</body>
+</html>

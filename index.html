@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRIMIN-0.1 Debug</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #0f0f0f; color: #e5e5e5; padding: 1.5rem; }
+  h1 { font-size: 18px; font-weight: 500; margin-bottom: 1.5rem; }
+  .btn { padding: 10px 22px; background: #FF0000; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .btn:active { opacity: 0.85; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 1.25rem 0; }
+  .stat { background: #1a1a1a; border-radius: 8px; padding: 0.75rem 1rem; }
+  .stat-label { font-size: 11px; color: #888; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-value { font-size: 14px; font-weight: 500; word-break: break-all; }
+  .card { background: #161616; border: 0.5px solid #2a2a2a; border-radius: 12px; padding: 1rem 1.25rem; margin-top: 1rem; }
+  .card-label { font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.6rem; }
+  pre { font-family: monospace; font-size: 11px; color: #ccc; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; background: #1a1a1a; border-radius: 6px; padding: 0.75rem; }
+  .checks { display: flex; flex-direction: column; gap: 8px; }
+  .check-row { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .ok { background: #22c55e; }
+  .err { background: #ef4444; }
+  .warn { background: #f59e0b; }
+  .note { font-size: 12px; color: #888; margin-left: auto; }
+  .swatch { display: inline-block; width: 13px; height: 13px; border-radius: 3px; border: 0.5px solid #444; vertical-align: middle; margin-right: 4px; }
+  .result-bar { margin-top: 1rem; padding: 0.75rem 1rem; border-radius: 8px; font-size: 14px; font-weight: 500; background: #1a1a1a; color: #888; }
+  .mock-status { font-size: 12px; color: #888; margin-top: 0.5rem; padding: 0.4rem 0.75rem; background: #1a1a1a; border-radius: 6px; display: inline-block; }
+  .mock-status.loaded { color: #22c55e; }
+  .mock-status.error  { color: #ef4444; }
+</style>
+</head>
+<body>
+
+<h1>CRIM'IN-0.1 — debug</h1>
+<div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+  <button class="btn" id="sendBtn" disabled>Capturer les empreintes</button>
+  <button class="btn" onclick="window.location.href = window.location.pathname" style="background:#2a2a2a;">↺ Rafraîchir</button>
+</div>
+<div id="mock-status" class="mock-status">⏳ Chargement de config_mock_v2.json…</div>
+
+<div class="grid">
+  <div class="stat"><div class="stat-label">JSON</div><div class="stat-value" id="s-json">—</div></div>
+  <div class="stat"><div class="stat-label">Base64</div><div class="stat-value" id="s-b64">—</div></div>
+  <div class="stat"><div class="stat-label">URL</div><div class="stat-value" id="s-url">—</div></div>
+  <div class="stat"><div class="stat-label">Encodage</div><div class="stat-value" id="s-enc">—</div></div>
+</div>
+
+<div class="card">
+  <div class="card-label">Vérification round-trip</div>
+  <div class="checks" id="checks"><div class="check-row"><span class="dot" style="background:#444"></span>En attente du clic...</div></div>
+</div>
+
+<div class="card">
+  <div class="card-label">JSON brut</div>
+  <pre id="raw-json">—</pre>
+</div>
+
+<div class="card">
+  <div class="card-label">Base64 encodé</div>
+  <pre id="b64-out">—</pre>
+</div>
+
+<div class="card">
+  <div class="card-label">JSON décodé (round-trip)</div>
+  <pre id="decoded-json">—</pre>
+</div>
+
+<div class="card">
+  <div class="card-label">URL intent complète</div>
+  <pre id="url-out">—</pre>
+</div>
+
+<div class="result-bar" id="result-bar">Résultat retour : en attente...</div>
+
+<script>
+let jsonData = null;
+
+// ─── Load mock.json ───────────────────────────────────────────────────────────
+const mockStatusEl = document.getElementById('mock-status');
+const sendBtn      = document.getElementById('sendBtn');
+
+fetch('config_mock_v2.json')
+  .then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
+    return res.json();
+  })
+  .then(data => {
+    jsonData = data;
+    mockStatusEl.textContent = '✓ config_mock_v2.json chargé';
+    mockStatusEl.classList.add('loaded');
+    sendBtn.disabled = false;
+  })
+  .catch(err => {
+    mockStatusEl.textContent = '✗ Impossible de charger config_mock_v2.json : ' + err.message;
+    mockStatusEl.classList.add('error');
+    // Show a helpful check in the checks panel
+    document.getElementById('checks').innerHTML =
+      `<div class="check-row"><span class="dot err"></span><span>config_mock_v2.json introuvable ou invalide</span><span class="note">${err.message}</span></div>`;
+  });
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function row(ok, label, note) {
+  const dotClass = ok === true ? 'ok' : ok === 'warn' ? 'warn' : 'err';
+  return `<div class="check-row"><span class="dot ${dotClass}"></span><span>${label}</span>${note ? `<span class="note">${note}</span>` : ''}</div>`;
+}
+
+// ─── Button handler ───────────────────────────────────────────────────────────
+sendBtn.addEventListener('click', function () {
+  if (!jsonData) return; // shouldn't happen since button is disabled until loaded
+
+ const minJson = JSON.stringify(jsonData);
+const b64 = btoa(unescape(encodeURIComponent(minJson)));
+
+const intentUrl =
+  "intent://capture#Intent;" +
+  "scheme=mcbdk;" +
+  "package=com.idemia.mcb.dk;" +
+  "S.configuration=" + b64 + ";" +
+  "end";
+
+  document.getElementById('s-json').textContent = minJson.length + ' chars';
+  document.getElementById('s-b64').textContent  = b64.length + ' chars';
+  document.getElementById('s-url').textContent  = intentUrl.length + ' chars';
+  document.getElementById('s-enc').textContent  = 'base64 + url';
+  document.getElementById('raw-json').textContent = JSON.stringify(jsonData, null, 2);
+  document.getElementById('b64-out').textContent  = b64;
+  document.getElementById('url-out').textContent  = intentUrl;
+
+  let html = '';
+  let decoded = '';
+  try {
+    const step1 = decodeURIComponent(urlEncoded);
+    html += row(true, 'URL decode OK', step1.substring(0, 20) + '…');
+    try {
+      decoded = decodeURIComponent(escape(atob(step1)));
+      html += row(true, 'Base64 decode OK');
+      try {
+        const p = JSON.parse(decoded);
+        html += row(true, 'JSON parse OK');
+        html += row(true, 'transactionId', p.transactionId);
+        html += row(
+          !!p.mainApplication?.mainColor,
+          'mainColor',
+          p.mainApplication?.mainColor
+            ? `<span class="swatch" style="background:${p.mainApplication.mainColor}"></span>${p.mainApplication.mainColor}`
+            : 'absent'
+        );
+        html += row(
+          !!p.mainApplication?.secondaryColor,
+          'secondaryColor',
+          p.mainApplication?.secondaryColor
+            ? `<span class="swatch" style="background:${p.mainApplication.secondaryColor}"></span>${p.mainApplication.secondaryColor}`
+            : 'absent'
+        );
+        html += row(true, 'name', p.mainApplication?.name ?? 'absent');
+      } catch (e) { html += row(false, 'JSON parse FAILED', e.message); }
+    } catch (e) { html += row(false, 'Base64 decode FAILED', e.message); }
+  } catch (e) { html += row(false, 'URL decode FAILED', e.message); }
+
+  document.getElementById('checks').innerHTML = html;
+  document.getElementById('decoded-json').textContent = decoded || '—';
+
+  window.location.href = intentUrl;
+});
+
+// ─── Return result bar ────────────────────────────────────────────────────────
+(function () {
+  const r = new URLSearchParams(window.location.search).get('result');
+  if (r) {
+    const bar = document.getElementById('result-bar');
+    const ok  = r.toUpperCase() === 'TERMINÉ';
+    bar.style.background = ok ? '#14532d' : '#450a0a';
+    bar.style.color      = ok ? '#86efac' : '#fca5a5';
+    bar.textContent      = 'Résultat retour : ' + r;
+  }
+})();
+</script>
+</body>
+</html>
